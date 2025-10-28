@@ -1,0 +1,177 @@
+import java.util.Scanner;
+
+class Book {
+    int id;
+    String title, author, status;
+    Book next;
+
+    Book(int id, String title, String author) {
+        this.id = id;
+        this.title = title;
+        this.author = author;
+        this.status = "Available";
+    }
+}
+
+class Transaction {
+    int bookId;
+    String action;
+    Transaction next;
+
+    Transaction(int bookId, String action) {
+        this.bookId = bookId;
+        this.action = action;
+    }
+}
+
+public class LibraryManagement {
+    static Book head = null;
+    static Transaction top = null;
+    static Scanner sc = new Scanner(System.in);
+
+    static void addBook() {
+        System.out.print("Enter Book ID: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+        System.out.print("Enter Title: ");
+        String title = sc.nextLine();
+        System.out.print("Enter Author: ");
+        String author = sc.nextLine();
+
+        Book newBook = new Book(id, title, author);
+        if (head == null) head = newBook;
+        else {
+            Book temp = head;
+            while (temp.next != null) temp = temp.next;
+            temp.next = newBook;
+        }
+        System.out.println("Book added!");
+    }
+
+    static void deleteBook() {
+        System.out.print("Enter Book ID: ");
+        int id = sc.nextInt();
+
+        if (head == null) {
+            System.out.println("No books found.");
+            return;
+        }
+
+        Book temp = head, prev = null;
+        while (temp != null && temp.id != id) {
+            prev = temp;
+            temp = temp.next;
+        }
+
+        if (temp == null) System.out.println("Book not found.");
+        else {
+            if (prev == null) head = temp.next;
+            else prev.next = temp.next;
+            System.out.println("Book deleted!");
+        }
+    }
+
+    static Book findBook(int id) {
+        Book temp = head;
+        while (temp != null) {
+            if (temp.id == id) return temp;
+            temp = temp.next;
+        }
+        return null;
+    }
+
+    static void issueBook() {
+        System.out.print("Enter Book ID: ");
+        int id = sc.nextInt();
+        Book book = findBook(id);
+
+        if (book == null) System.out.println("Book not found.");
+        else if (book.status.equals("Issued")) System.out.println("Already issued.");
+        else {
+            book.status = "Issued";
+            Transaction t = new Transaction(id, "Issue");
+            t.next = top;
+            top = t;
+            System.out.println("Book issued!");
+        }
+    }
+
+    static void returnBook() {
+        System.out.print("Enter Book ID: ");
+        int id = sc.nextInt();
+        Book book = findBook(id);
+
+        if (book == null) System.out.println("Book not found.");
+        else if (book.status.equals("Available")) System.out.println("Already available.");
+        else {
+            book.status = "Available";
+            Transaction t = new Transaction(id, "Return");
+            t.next = top;
+            top = t;
+            System.out.println("Book returned!");
+        }
+    }
+
+    static void undo() {
+        if (top == null) {
+            System.out.println("No transactions.");
+            return;
+        }
+
+        Transaction last = top;
+        top = top.next;
+        Book book = findBook(last.bookId);
+
+        if (book != null) {
+            if (last.action.equals("Issue")) book.status = "Available";
+            else book.status = "Issued";
+            System.out.println("Undo successful!");
+        }
+    }
+
+    static void viewBooks() {
+        if (head == null) {
+            System.out.println("No books.");
+            return;
+        }
+        Book temp = head;
+        System.out.println("\n--- Books ---");
+        while (temp != null) {
+            System.out.println(temp.id + " | " + temp.title + " | " + temp.author + " | " + temp.status);
+            temp = temp.next;
+        }
+    }
+
+    static void viewTransactions() {
+        if (top == null) {
+            System.out.println("No transactions.");
+            return;
+        }
+        Transaction temp = top;
+        System.out.println("\n--- Transactions ---");
+        while (temp != null) {
+            System.out.println(temp.bookId + " - " + temp.action);
+            temp = temp.next;
+        }
+    }
+
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\n1.Add 2.Delete 3.Issue 4.Return 5.Undo 6.View Books 7.Transactions 8.Exit");
+            System.out.print("Choice: ");
+            int choice = sc.nextInt();
+
+            switch (choice) {
+                case 1: addBook(); break;
+                case 2: deleteBook(); break;
+                case 3: issueBook(); break;
+                case 4: returnBook(); break;
+                case 5: undo(); break;
+                case 6: viewBooks(); break;
+                case 7: viewTransactions(); break;
+                case 8: return;
+                default: System.out.println("Invalid!");
+            }
+        }
+    }
+}
